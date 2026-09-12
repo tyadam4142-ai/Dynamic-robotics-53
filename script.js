@@ -1,0 +1,305 @@
+/**
+ * DYNAMIC ROBOTICS 53 (DR53) - CORE LOGIC & CONFIGURATOR ENGINE
+ * Target: Vanilla JS (ES6) for static deployment (GitHub Pages / Koder)
+ * Author: Adam Bhaimia
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    // ==========================================
+    // 1. BOOT INTRO ANIMATION (SESSION BASED)
+    // ==========================================
+    const bootOverlay = document.getElementById('dr53-boot-loader');
+    if (bootOverlay) {
+        const hasBooted = sessionStorage.getItem('dr53_booted');
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (hasBooted || prefersReduced) {
+            bootOverlay.style.display = 'none';
+        } else {
+            document.body.classList.add('no-scroll');
+            setTimeout(() => {
+                bootOverlay.classList.add('fade-out');
+                document.body.classList.remove('no-scroll');
+                sessionStorage.setItem('dr53_booted', 'true');
+                setTimeout(() => {
+                    bootOverlay.style.display = 'none';
+                }, 600);
+            }, 1800); // 1.8 seconds sequence
+        }
+    }
+
+    // ==========================================
+    // 2. STICKY NAVBAR & MOBILE MENU ACCESSIBILITY
+    // ==========================================
+    const navbar = document.getElementById('navbar');
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const navMenu = document.getElementById('nav-menu');
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 40) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    if (hamburgerBtn && navMenu) {
+        function toggleMobileMenu() {
+            const isActive = navMenu.classList.toggle('is-active');
+            hamburgerBtn.classList.toggle('is-active');
+            if (isActive) {
+                document.body.classList.add('no-scroll');
+            } else {
+                document.body.classList.remove('no-scroll');
+            }
+        }
+
+        hamburgerBtn.addEventListener('click', toggleMobileMenu);
+
+        // Close when clicking nav links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (navMenu.classList.contains('is-active')) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && navMenu.classList.contains('is-active')) {
+                toggleMobileMenu();
+            }
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', (e) => {
+            if (navMenu.classList.contains('is-active') && 
+                !navMenu.contains(e.target) && 
+                !hamburgerBtn.contains(e.target)) {
+                toggleMobileMenu();
+            }
+        });
+    }
+
+    // ==========================================
+    // 3. WEBSITE BUILDER CONFIGURATOR & CALCULATOR
+    // ==========================================
+    const pkgRadios = document.querySelectorAll('input[name="pkg"]');
+    const addonCheckboxes = document.querySelectorAll('.addon-input');
+    const summaryPkgName = document.getElementById('summary-pkg-name');
+    const summaryPkgPrice = document.getElementById('summary-pkg-price');
+    const summaryAddonsUl = document.getElementById('summary-addons-ul');
+    const summaryTotalPrice = document.getElementById('summary-total-price');
+    const sendWaEnquiryBtn = document.getElementById('send-wa-enquiry-btn');
+
+    if (summaryTotalPrice) {
+        function calculateEstimate() {
+            let total = 0;
+            let selectedPkgName = "Starter";
+            let basePrice = 5300;
+
+            // Pkg calc
+            pkgRadios.forEach(radio => {
+                if (radio.checked) {
+                    basePrice = parseInt(radio.getAttribute('data-price'), 10);
+                    selectedPkgName = radio.value.toUpperCase();
+                }
+            });
+            total += basePrice;
+
+            // Addons calc
+            const selectedAddons = [];
+            addonCheckboxes.forEach(cb => {
+                if (cb.checked) {
+                    const price = parseInt(cb.getAttribute('data-price'), 10);
+                    const name = cb.getAttribute('data-name');
+                    total += price;
+                    selectedAddons.push({ name, price });
+                }
+            });
+
+            // Update UI
+            if (summaryPkgName) summaryPkgName.textContent = selectedPkgName;
+            if (summaryPkgPrice) summaryPkgPrice.textContent = `₹${basePrice.toLocaleString('en-IN')}`;
+            
+            if (summaryAddonsUl) {
+                summaryAddonsUl.innerHTML = '';
+                if (selectedAddons.length === 0) {
+                    summaryAddonsUl.innerHTML = '<li class="muted-li">None selected</li>';
+                } else {
+                    selectedAddons.forEach(item => {
+                        const li = document.createElement('li');
+                        li.textContent = `+ ${item.name} (₹${item.price})`;
+                        summaryAddonsUl.appendChild(li);
+                    });
+                }
+            }
+
+            summaryTotalPrice.textContent = `₹${total.toLocaleString('en-IN')}`;
+            return { total, selectedPkgName, selectedAddons, basePrice };
+        }
+
+        // Attach Event Listeners
+        pkgRadios.forEach(r => r.addEventListener('change', calculateEstimate));
+        addonCheckboxes.forEach(c => c.addEventListener('change', calculateEstimate));
+
+        // Initial Calculation
+        calculateEstimate();
+
+        // WHATSAPP ENQUIRER GENERATOR
+        if (sendWaEnquiryBtn) {
+            sendWaEnquiryBtn.addEventListener('click', () => {
+                const data = calculateEstimate();
+                const domainOption = document.getElementById('domain-option').value;
+                const domainName = document.getElementById('domain-name-input').value.trim() || 'Not specified';
+                const notes = document.getElementById('project-notes').value.trim() || 'None';
+
+                let addonText = data.selectedAddons.map(a => `• ${a.name} (₹${a.price})`).join('\n');
+                if (!addonText) addonText = 'None';
+
+                const message = `*NEW WEBSITE CONFIGURATION ENQUIRY - DR53*\n\n` +
+                    `*Selected Package:* ${data.selectedPkgName} (₹${data.basePrice})\n` +
+                    `*Selected Add-ons:*\n${addonText}\n\n` +
+                    `*Domain Status:* ${domainOption}\n` +
+                    `*Preferred Domain:* ${domainName}\n` +
+                    `*Project Notes:* ${notes}\n\n` +
+                    `*ESTIMATED TOTAL:* ₹${data.total.toLocaleString('en-IN')}\n\n` +
+                    `Hi Adam, I generated this quote on the DR53 website builder. Let's discuss building this.`;
+
+                const waUrl = `https://wa.me/918149916052?text=${encodeURIComponent(message)}`;
+                window.open(waUrl, '_blank');
+            });
+        }
+    }
+
+    // ==========================================
+    // 4. DOMAIN CHECKER FAKE API PREVENTER
+    // ==========================================
+    const checkDomainBtn = document.getElementById('check-domain-btn');
+    const domainFeedback = document.getElementById('domain-feedback');
+    if (checkDomainBtn && domainFeedback) {
+        checkDomainBtn.addEventListener('click', () => {
+            const val = document.getElementById('domain-name-input').value.trim();
+            if (!val) {
+                domainFeedback.textContent = "Please enter a domain name first.";
+                domainFeedback.style.color = "#F1CA62";
+            } else {
+                domainFeedback.textContent = `We'll check availability and current renewal pricing for "${val}" when you submit your WhatsApp enquiry.`;
+                domainFeedback.style.color = "#00F0FF";
+            }
+        });
+    }
+
+    // ==========================================
+    // 5. DOMAIN FAQ ACCORDION
+    // ==========================================
+    const faqToggleBtn = document.getElementById('faq-domain-toggle');
+    const faqContent = document.getElementById('faq-domain-content');
+    if (faqToggleBtn && faqContent) {
+        faqToggleBtn.addEventListener('click', () => {
+            const isOpen = faqContent.classList.toggle('open');
+            faqToggleBtn.querySelector('.acc-icon').textContent = isOpen ? '−' : '+';
+        });
+    }
+
+    // ==========================================
+    // 6. GENERAL CONTACT FORM WA GENERATOR
+    // ==========================================
+    const generalContactForm = document.getElementById('general-contact-form');
+    if (generalContactForm) {
+        generalContactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('contact-name').value.trim();
+            const phone = document.getElementById('contact-phone').value.trim();
+            const type = document.getElementById('contact-type').value;
+            const msg = document.getElementById('contact-msg').value.trim();
+
+            const text = `*NEW GENERAL ENQUIRY - DR53*\n\n` +
+                `*Name:* ${name}\n` +
+                `*Phone/WhatsApp:* ${phone}\n` +
+                `*Domain:* ${type}\n` +
+                `*Message Details:*\n${msg}\n\n` +
+                `Hi Adam, I reached out via your website contact form.`;
+
+            const waUrl = `https://wa.me/918149916052?text=${encodeURIComponent(text)}`;
+            window.open(waUrl, '_blank');
+        });
+    }
+
+});
+
+/* ================================================================
+   DR53 V3 — GLOBAL AI CONCIERGE
+   Works with /api/chat when available and falls back to a local
+   DR53 knowledge engine, so the chat never just dies on static hosting.
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('dr53-ai-v3-window')) return;
+
+  const knowledge = [
+    {keys:['what is dr53','what is dynamic robotics','about dr53'], reply:'Dynamic Robotics 53 (DR53) is an engineering initiative founded by Adam Bhaimia in Pune. We focus on robotics, embedded electronics, AI/computer vision and professional business websites.'},
+    {keys:['robotics','robot','rover','mechanical'], reply:'DR53 builds practical robotics systems: mobile robots, autonomous concepts, mechanisms, servo systems and sensor-driven prototypes. Check the Projects page for the featured builds.'},
+    {keys:['ai','vision','computer vision','object detection'], reply:'DR53 works with camera-based AI, object detection, inspection concepts, OpenCV and edge systems such as Raspberry Pi.'},
+    {keys:['electronics','esp32','arduino','sensor','motor'], reply:'DR53 works with ESP32, Arduino, Raspberry Pi, sensors, motors, wireless control, PWM/servo systems and embedded prototypes.'},
+    {keys:['glove','gesture'], reply:'The Talking Gesture Glove uses flex sensing, MPU6050 orientation data and an ESP32 to turn hand movement into useful communication commands.'},
+    {keys:['hand','robotic hand','pca9685'], reply:'The Servo Articulated Robotic Hand uses PCA9685 PWM control and servo actuation for multi-joint finger movement.'},
+    {keys:['trash','rover','cleaning'], reply:'The Trash Collecting Rover is a mobile collection concept combining high-torque drive, suction hardware and solar-assisted power.'},
+    {keys:['website','web','design a website','business website'], reply:'DR53 also creates premium, responsive business websites with WhatsApp lead capture, catalogs, portfolios and custom interactive features. Use DESIGN YOUR WEBSITE in the menu for the configurator.'},
+    {keys:['achievement','award','biea','agrisort','a-zero'], reply:'A recent DR53 milestone is the AgriSort Innovators / A-Zero project for BIEA 2026: an autonomous zero-handling food supply chain concept using robotics, AI vision, Raspberry Pi 5, sensors and automated logistics.'},
+    {keys:['wsc','scholar cup','debate'], reply:'Adam participated with the AgriSort Innovators team in the 2026 World Scholar’s Cup journey, including debate, collaborative writing and Scholar’s Bowl preparation.'},
+    {keys:['ftc','first tech challenge','mecanum'], reply:'Adam is building a Java + robotics portfolio for FTC 2026–27, including mecanum-drive control logic and a software/hardware engineering workflow.'},
+    {keys:['price','cost','quote','how much'], reply:'For a project quote, the fastest route is WhatsApp. Tell Adam what you want built, your target result and any deadline or budget you already have.'},
+    {keys:['contact','whatsapp','adam','hire','start'], reply:'You can contact Adam Bhaimia directly on WhatsApp: +91 8149916052. The project buttons on this site can also prepare a message for you.'}
+  ];
+
+  const icon = `<svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><rect x="13" y="18" width="38" height="31" rx="9" stroke="currentColor" stroke-width="4"/><circle cx="24" cy="32" r="3" fill="currentColor"/><circle cx="40" cy="32" r="3" fill="currentColor"/><path d="M23 41c5 4 13 4 18 0M32 18V10" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle cx="32" cy="8" r="3" fill="currentColor"/></svg>`;
+  document.body.insertAdjacentHTML('beforeend', `
+    <button class="dr53-ai-v3-button" id="dr53-ai-v3-button" aria-label="Open DR53 AI assistant">${icon}</button>
+    <section class="dr53-ai-v3-window" id="dr53-ai-v3-window" aria-hidden="true" aria-label="DR53 AI assistant">
+      <header class="dr53-ai-v3-head"><div class="dr53-ai-v3-brand"><div class="dr53-ai-v3-mark">DR53</div><div><strong>DR53 CONCIERGE</strong><div class="dr53-ai-v3-status">● SYSTEM ONLINE</div></div></div><button class="dr53-ai-v3-close" id="dr53-ai-v3-close" aria-label="Close">×</button></header>
+      <div class="dr53-ai-v3-messages" id="dr53-ai-v3-messages"><div class="dr53-ai-v3-msg bot">Hey — I’m the DR53 project concierge. Ask me about a build, service, website, or how to start a project.</div></div>
+      <div class="dr53-ai-v3-suggest" id="dr53-ai-v3-suggest"><button>What does DR53 build?</button><button>Show projects</button><button>How do I start?</button></div>
+      <form class="dr53-ai-v3-form" id="dr53-ai-v3-form"><input id="dr53-ai-v3-input" maxlength="900" autocomplete="off" placeholder="Ask about DR53…" required><button aria-label="Send">➤</button></form>
+      <div class="dr53-ai-v3-foot">DR53 • PROJECT CONCIERGE • DIRECT WHATSAPP AVAILABLE</div>
+    </section>
+  `);
+
+  const win=document.getElementById('dr53-ai-v3-window'), btn=document.getElementById('dr53-ai-v3-button'), close=document.getElementById('dr53-ai-v3-close'), form=document.getElementById('dr53-ai-v3-form'), input=document.getElementById('dr53-ai-v3-input'), messages=document.getElementById('dr53-ai-v3-messages'), suggestions=document.getElementById('dr53-ai-v3-suggest');
+  const history=[];
+  const add=(text,type='bot')=>{const el=document.createElement('div');el.className=`dr53-ai-v3-msg ${type}`;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;return el;};
+  const localReply=(q)=>{const s=q.toLowerCase();const hit=knowledge.find(x=>x.keys.some(k=>s.includes(k)));if(hit)return hit.reply;if(/project|build|portfolio/i.test(s))return 'The featured builds are Autonomous Robotics, Talking Gesture Glove, AI & Vision Systems, Electronics Systems, Servo Articulated Robotic Hand and Trash Collecting Rover.';return 'I can help with DR53 projects, robotics, AI vision, electronics, websites, recent milestones, pricing direction and contacting Adam. Try asking “What does DR53 build?” or “How do I start a project?”';};
+  const open=()=>{win.classList.add('open');win.setAttribute('aria-hidden','false');setTimeout(()=>input.focus(),180)};
+  const shut=()=>{win.classList.remove('open');win.setAttribute('aria-hidden','true')};
+  btn.addEventListener('click',()=>win.classList.contains('open')?shut():open());close.addEventListener('click',shut);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')shut()});
+  suggestions.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>send(b.textContent)));
+
+  async function send(raw){
+    const q=String(raw||'').trim();if(!q)return;
+    add(q,'user');input.value='';suggestions.style.display='none';
+    const loading=add('Analyzing…','bot');history.push({role:'user',content:q});
+    try{
+      const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),6500);
+      const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history.slice(-12)}),signal:controller.signal});clearTimeout(timer);
+      if(!r.ok)throw new Error('API unavailable');
+      const data=await r.json();const reply=typeof data.reply==='string'?data.reply.trim():'';if(!reply)throw new Error('Empty reply');
+      loading.remove();add(reply);history.push({role:'assistant',content:reply});
+    }catch(e){loading.remove();const reply=localReply(q);add(reply);history.push({role:'assistant',content:reply});}
+  }
+  form.addEventListener('submit',e=>{e.preventDefault();send(input.value)});
+
+  /* V3 scroll reveal */
+  const reveals=document.querySelectorAll('.dr53-v3 .reveal');
+  if('IntersectionObserver' in window){const io=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');io.unobserve(entry.target)}}),{threshold:.12});reveals.forEach(x=>io.observe(x));}else reveals.forEach(x=>x.classList.add('visible'));
+
+  /* V3 nav scroll state */
+  const nav=document.getElementById('navbar');if(nav){const ns=()=>nav.classList.toggle('scrolled',window.scrollY>20);window.addEventListener('scroll',ns,{passive:true});ns();}
+
+  /* V3 mobile menu */
+  const menu=document.getElementById('hamburger-btn'),navMenu=document.getElementById('nav-menu');if(menu&&navMenu){menu.addEventListener('click',()=>navMenu.classList.toggle('is-active'));navMenu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>navMenu.classList.remove('is-active')))}
+
+  /* ambient particles */
+  const p=document.getElementById('v3-particles');if(p){const n=window.innerWidth<650?14:28;for(let i=0;i<n;i++){const s=document.createElement('span');s.className='v3-particle';s.style.left=Math.random()*100+'%';s.style.animationDuration=(7+Math.random()*10)+'s';s.style.animationDelay=(-Math.random()*12)+'s';s.style.transform=`scale(${.5+Math.random()})`;p.appendChild(s)}}
+});
