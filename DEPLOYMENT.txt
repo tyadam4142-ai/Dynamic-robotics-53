@@ -1,3 +1,0 @@
-DR53 V4 website package. Upload ALL files and the assets folder; do not upload HTML alone.
-Open index.html. Main site pages: index.html, projects.html, services.html, software.html, about.html, visit.html.
-Project images live in assets/projects/.
