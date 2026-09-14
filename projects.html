@@ -21,13 +21,27 @@
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 
-<div class="boot-loader" id="bootLoader" aria-hidden="true">
-  <div class="boot-inner">
-    <div class="boot-mark">DR<b>53</b></div>
-    <div class="boot-label">Engineering Systems / Initializing</div>
-    <div class="boot-bar"><span></span></div>
-    <div class="boot-status" id="bootStatus">Calibrating interface…</div>
+<!-- UPGRADED BOOT LOADER -->
+<div class="boot-loader" id="bootLoader" aria-hidden="true" style="display: flex; align-items: center; justify-content: center; position: fixed; inset: 0; z-index: 9999; background: #030711;">
+  <div class="boot-inner" style="position: relative; overflow: hidden; border: 1px solid rgba(250, 204, 21, 0.2); padding: 50px; border-radius: 12px; background: rgba(3, 7, 17, 0.95); box-shadow: 0 0 40px rgba(250, 204, 21, 0.05); text-align: center; width: 100%; max-width: 400px;">
+    <!-- Scanning Laser Line -->
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: rgba(250, 204, 21, 0.8); opacity: 0.8; animation: bootScan 2s linear infinite;"></div>
+    
+    <div class="boot-mark" style="font-size: 3.5rem; letter-spacing: -2px; margin-bottom: 10px;">DR<b style="color: #facc15;">53</b></div>
+    <div class="boot-label" style="font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: #a1a1aa; margin-bottom: 25px;">[ OS v2.0 ] Initiating Core...</div>
+    
+    <div class="boot-bar" style="height: 3px; background: #1f2937; position: relative; overflow: hidden; margin-bottom: 15px; border-radius: 3px;">
+      <span style="display: block; height: 100%; background: #facc15; width: 0%; animation: bootLoad 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;"></span>
+    </div>
+    
+    <div class="boot-status" id="bootStatus" style="font-family: 'IBM Plex Mono', monospace; color: #facc15; font-size: 13px; animation: bootPulse 1.5s infinite;">> Calibrating interface...</div>
   </div>
+  
+  <style>
+    @keyframes bootScan { 0% { top: -10%; } 100% { top: 110%; } }
+    @keyframes bootLoad { 0% { width: 0%; } 40% { width: 45%; } 70% { width: 80%; } 100% { width: 100%; } }
+    @keyframes bootPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  </style>
 </div>
 
 <div class="scroll-progress" aria-hidden="true"><span></span></div>
@@ -167,6 +181,32 @@
           <p>A mobile collection concept combining high-torque drive, suction hardware and solar-assisted energy management.</p>
           <div class="project-tags"><b>DC Motors</b><b>Suction</b><b>Solar</b><b>Rover</b></div>
           <a class="btn btn-secondary" href="https://wa.me/918149916052?text=Hi%20Adam%2C%20I%20want%20to%20discuss%20the%20Trash%20Collecting%20Rover." target="_blank" rel="noopener">Discuss this Build →</a>
+        </div>
+      </article>
+
+      <!-- E-ADAPTER NEW ARTICLE -->
+      <article class="project-feature" id="eadapter">
+        <div class="project-feature-media" data-reveal data-tilt data-spotlight>
+          <img data-tilt-img src="assets/projects/e-adapter.jpg" alt="E-Adapter Power Solar Crank">
+          <span class="project-tag">07 · Hardware Device</span>
+        </div>
+        <div data-reveal>
+          <span class="kicker">Power Systems</span>
+          <h2>E-Adapter</h2>
+          <p>The IPS306 Power / Solar / Crank emergency power bank. Keep your hardware and devices charged anywhere using ambient solar energy or the built-in manual crank mechanism.</p>
+          <div class="project-tags">
+            <b>Solar</b><b>Hand-Crank</b><b>Power Bank</b><b>Hardware</b>
+          </div>
+          
+          <div style="margin-top: 25px; display: flex; align-items: center; gap: 20px; background: rgba(255,255,255,0.03); padding: 15px 20px; border-radius: 8px; border: 1px solid rgba(250,204,21,0.1);">
+            <div>
+              <span style="display: block; font-size: 12px; color: #a1a1aa; margin-bottom: 2px;">Direct Price</span>
+              <span style="font-size: 28px; font-weight: bold; font-family: 'Space Grotesk', sans-serif; color: #facc15;">₹2,553</span>
+            </div>
+            <a class="btn btn-whatsapp" href="https://wa.me/918149916052?text=Hi%20Adam%2C%20I%20want%20to%20buy%20the%20E-Adapter%20for%20%E2%82%B92553." target="_blank" rel="noopener" style="padding: 12px 24px;">
+              Buy Now via WhatsApp →
+            </a>
+          </div>
         </div>
       </article>
 
